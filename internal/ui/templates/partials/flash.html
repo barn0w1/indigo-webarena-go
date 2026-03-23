@@ -1,0 +1,9 @@
+{{define "flash"}}
+<div class="flash {{.Kind}}">{{.Message}}</div>
+{{end}}
+
+{{define "flash-oob"}}
+<div id="flash" hx-swap-oob="true">
+  <div class="flash {{.Kind}}">{{.Message}}</div>
+</div>
+{{end}}

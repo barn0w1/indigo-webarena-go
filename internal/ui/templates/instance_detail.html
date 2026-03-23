@@ -1,0 +1,71 @@
+{{define "content"}}
+{{with .Data}}
+<div class="page-header">
+  <div>
+    <h1>{{.Name}}</h1>
+    <span style="font-size:13px; color:var(--text-secondary);">ID: <span class="mono">{{itoa .ID}}</span></span>
+  </div>
+  <a href="/instances" class="btn btn-secondary">&#8592; Back</a>
+</div>
+<div class="page-body">
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px;">
+
+    <div class="card" style="padding:20px;">
+      <p class="section-heading">Overview</p>
+      <div class="detail-grid">
+        <span class="detail-label">Status</span>
+        <span class="detail-value"><span class="{{statusBadgeClass .Status}} badge">{{.Status}}</span></span>
+
+        <span class="detail-label">IP Address</span>
+        <span class="detail-value mono">{{if .IP}}{{.IP}}{{else}}&mdash;{{end}}</span>
+
+        <span class="detail-label">Reverse DNS</span>
+        <span class="detail-value mono">{{if .ArpaName}}{{.ArpaName}}{{else}}&mdash;{{end}}</span>
+
+        <span class="detail-label">Plan</span>
+        <span class="detail-value">{{if .Plan}}{{.Plan}}{{else}}&mdash;{{end}}</span>
+      </div>
+    </div>
+
+    <div class="card" style="padding:20px;">
+      <p class="section-heading">Hardware</p>
+      <div class="detail-grid">
+        <span class="detail-label">CPUs</span>
+        <span class="detail-value">{{.CPUs}}</span>
+
+        <span class="detail-label">Memory</span>
+        <span class="detail-value">{{.MemSize}} MB</span>
+
+        <span class="detail-label">OS ID</span>
+        <span class="detail-value mono">{{itoa .OSID}}</span>
+
+        <span class="detail-label">SSH Key ID</span>
+        <span class="detail-value mono">{{if .SSHKeyID}}{{itoa .SSHKeyID}}{{else}}&mdash;{{end}}</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card" style="padding:20px; margin-bottom:24px;">
+    <p class="section-heading">Identifiers</p>
+    <div class="detail-grid">
+      <span class="detail-label">UUID</span>
+      <span class="detail-value mono">{{.UUID}}</span>
+
+      <span class="detail-label">Host ID</span>
+      <span class="detail-value mono">{{itoa .HostID}}</span>
+    </div>
+  </div>
+
+  <div class="card" style="padding:20px;">
+    <p class="section-heading">Actions</p>
+    <p style="font-size:12px; color:var(--text-secondary); margin:0 0 14px;">
+      Destructive actions require confirmation. Start/Stop/Reset are non-destructive.
+    </p>
+    {{template "instance-actions" .}}
+  </div>
+
+</div>
+{{end}}
+{{end}}

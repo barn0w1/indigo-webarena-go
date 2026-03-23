@@ -1,0 +1,36 @@
+{{define "content"}}
+<div class="page-header">
+  <h1>Instances</h1>
+  <a href="/instances/new" class="btn btn-primary">+ New Instance</a>
+</div>
+<div class="page-body">
+  <div class="card">
+    {{if .Data}}
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>IP Address</th>
+          <th>Plan</th>
+          <th>UUID</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Data}}
+        {{template "instance-row" .}}
+        {{end}}
+      </tbody>
+    </table>
+    {{else}}
+    <div class="empty-state">
+      <p style="font-size:15px; margin:0 0 8px;">No instances found</p>
+      <p style="margin:0; font-size:13px;">
+        <a href="/instances/new" style="color:var(--accent);">Create your first instance</a>
+      </p>
+    </div>
+    {{end}}
+  </div>
+</div>
+{{end}}
