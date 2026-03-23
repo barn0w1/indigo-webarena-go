@@ -1,0 +1,552 @@
+openapi: 3.0.3
+info:
+  title: WebARENA Indigo API
+  description: >
+    API documentation for WebARENA Indigo. This specification covers the Access Token, 
+    SSH Key, and Instance management features. It allows you to authenticate, manage 
+    SSH keys, and fully manage your instances.
+  version: 1.0.0
+servers:
+  - url: https://api.customer.jp
+    description: Production Server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Enter your Access Token. For example, `Bearer {accessToken}`
+
+security:
+  - bearerAuth:[]
+
+paths:
+  # ==========================================
+  # ACCESS TOKEN
+  # ==========================================
+  /oauth/v1/accesstokens:
+    post:
+      summary: Generate Access Token
+      description: Generate an Access Token using your API Key (clientId) and API Private Key (clientSecret).
+      tags:
+        - Access Token
+      security:[] # No auth required for this endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - grantType
+                - clientId
+                - clientSecret
+              properties:
+                grantType:
+                  type: string
+                  example: client_credentials
+                clientId:
+                  type: string
+                  description: Your API key.
+                  example: YNG2yIyLDA3TqODlEXvLRwL7HzBjDsCQ
+                clientSecret:
+                  type: string
+                  description: Your API private key.
+                  example: uDczeZJlxYvuzqcU
+                code:
+                  type: string
+                  description: Authorization code (usually empty for client_credentials).
+                  example: ""
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                    example: HnGma03YnFPIF4DMttywiSOCGUHR
+                  tokenType:
+                    type: string
+                    example: BearerToken
+                  expiresIn:
+                    type: string
+                    example: "3599"
+                  scope:
+                    type: string
+                  issuedAt:
+                    type: string
+                    example: "1550570350202"
+
+  # ==========================================
+  # SSH KEY
+  # ==========================================
+  /webarenaIndigo/v1/vm/sshkey:
+    get:
+      summary: SSH Key List
+      description: Retrieve a list of all SSH keys in your account.
+      tags:
+        - SSH Key
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  total:
+                    type: integer
+                  sshkeys:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SshKey'
+    post:
+      summary: Create SSH Key
+      description: Add an SSH public key to your WebARENA Indigo account.
+      tags:
+        - SSH Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sshName
+                - sshKey
+              properties:
+                sshName:
+                  type: string
+                  description: The human-readable name for the new SSH key.
+                sshKey:
+                  type: string
+                  description: The full public key string.
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  sshKey:
+                    $ref: '#/components/schemas/SshKey'
+
+  /webarenaIndigo/v1/vm/sshkey/active/status:
+    get:
+      summary: Active SSH Key List
+      description: Retrieve a list of all ACTIVE SSH keys in your account.
+      tags:
+        - SSH Key
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  total:
+                    type: integer
+                  sshkeys:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SshKey'
+
+  /webarenaIndigo/v1/vm/sshkey/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: The unique ID of the SSH key.
+    get:
+      summary: Retrieve SSH Key
+      description: View details about a specific SSH key.
+      tags:
+        - SSH Key
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  sshKey:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SshKey'
+    put:
+      summary: Update SSH Key
+      description: Update the name or status of an existing SSH key.
+      tags:
+        - SSH Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sshName:
+                  type: string
+                  description: The updated name for the SSH key.
+                sshKey:
+                  type: string
+                  description: The updated public key string.
+                sshKeyStatus:
+                  type: string
+                  description: SSH key status (ACTIVE / DEACTIVE).
+                  enum: [ACTIVE, DEACTIVE]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+    delete:
+      summary: Destroy SSH Key
+      description: Remove a public SSH key from your account.
+      tags:
+        - SSH Key
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  # ==========================================
+  # INSTANCE
+  # ==========================================
+  /webarenaIndigo/v1/vm/instancetypes:
+    get:
+      summary: Instance Type List
+      description: Retrieve details about available instance types.
+      tags:
+        - Instance
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  total:
+                    type: integer
+                  instanceTypes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        display_name:
+                          type: string
+
+  /webarenaIndigo/v1/vm/getregion:
+    get:
+      summary: Get Region List
+      description: Retrieve details about available regions based on the instance type.
+      tags:
+        - Instance
+      parameters:
+        - name: instanceTypeId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Instance Type ID filter.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  total:
+                    type: integer
+                  regionlist:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+
+  /webarenaIndigo/v1/vm/oslist:
+    get:
+      summary: Get OS List
+      description: Retrieve details about available operating systems.
+      tags:
+        - Instance
+      parameters:
+        - name: instanceTypeId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  total:
+                    type: integer
+                  osCategory:
+                    type: array
+                    items:
+                      type: object
+
+  /webarenaIndigo/v1/vm/getinstancespec:
+    get:
+      summary: Get Instance Specification
+      description: Retrieve available specifications/plans for a selected Instance Type and OS.
+      tags:
+        - Instance
+      parameters:
+        - name: instanceTypeId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: osId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  total:
+                    type: integer
+                  speclist:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        description:
+                          type: string
+
+  /webarenaIndigo/v1/vm/createinstance:
+    post:
+      summary: Create Instance
+      description: >
+        Add a new Instance to your WebARENA Indigo account. 
+        Supports Linux, Windows, Import URL, and Snapshot instance creations.
+      tags:
+        - Instance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - instancePlan
+                - instanceName
+              properties:
+                instanceName:
+                  type: string
+                  description: Instance Name.
+                instancePlan:
+                  type: integer
+                  description: Instance specification ID.
+                regionId:
+                  type: integer
+                  description: Region ID.
+                osId:
+                  type: integer
+                  description: OS ID.
+                sshKeyId:
+                  type: integer
+                  description: SSH Key ID (Required for Linux and Snapshot instances).
+                winPassword:
+                  type: string
+                  description: Windows administrator password (Required for Windows instances).
+                importUrl:
+                  type: string
+                  description: Import VM URL Path (Required for Import URL instances).
+                snapshotId:
+                  type: integer
+                  description: Snapshot ID (Required for Snapshot instances).
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  vms:
+                    $ref: '#/components/schemas/InstanceData'
+
+  /webarenaIndigo/v1/vm/getinstancelist:
+    get:
+      summary: Get Instance List
+      description: View details of all instances under the account.
+      tags:
+        - Instance
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InstanceData'
+
+  /webarenaIndigo/v1/vm/instance/statusupdate:
+    post:
+      summary: Update Instance Status
+      description: Start, stop, force-stop, reset, or destroy an instance.
+      tags:
+        - Instance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - instanceId
+                - status
+              properties:
+                instanceId:
+                  type: string
+                  description: Instance ID.
+                status:
+                  type: string
+                  enum:[start, stop, forcestop, reset, destroy]
+                  description: The action to perform.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  successCode:
+                    type: string
+                  instanceStatus:
+                    type: string
+
+components:
+  schemas:
+    SshKey:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique ID for the key.
+        service_id:
+          type: string
+        user_id:
+          type: integer
+        name:
+          type: string
+          description: Human-readable display name.
+        sshkey:
+          type: string
+          description: Entire public key string.
+        status:
+          type: string
+          description: SSH key status (e.g., ACTIVE).
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    InstanceData:
+      type: object
+      properties:
+        id:
+          type: integer
+        instance_name:
+          type: string
+        status:
+          type: string
+        sshkey_id:
+          type: integer
+        host_id:
+          type: integer
+        plan:
+          type: string
+        memsize:
+          type: integer
+        cpus:
+          type: integer
+        os_id:
+          type: integer
+        uuid:
+          type: string
+        ip:
+          type: string
+        arpaname:
+          type: string
