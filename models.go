@@ -2,8 +2,30 @@ package indigo
 
 import (
 	"encoding/json"
+	"strings"
 	"time"
 )
+
+// APITime is a time.Time that accepts both RFC3339 and the API's
+// space-separated format ("2006-01-02 15:04:05").
+// All time.Time methods are available directly via embedding.
+type APITime struct {
+	time.Time
+}
+
+func (t *APITime) UnmarshalJSON(data []byte) error {
+	s := strings.Trim(string(data), `"`)
+	if s == "" || s == "null" {
+		return nil
+	}
+	for _, layout := range []string{time.RFC3339, "2006-01-02 15:04:05"} {
+		if parsed, err := time.Parse(layout, s); err == nil {
+			t.Time = parsed
+			return nil
+		}
+	}
+	return &time.ParseError{Value: s, Layout: "2006-01-02 15:04:05"}
+}
 
 // SSHKeyStatus represents the activation state of an SSH key.
 type SSHKeyStatus string
@@ -42,8 +64,8 @@ type SSHKey struct {
 	Name      string       `json:"name"`
 	PublicKey string       `json:"sshkey"`
 	Status    SSHKeyStatus `json:"status"`
-	CreatedAt time.Time    `json:"created_at"`
-	UpdatedAt time.Time    `json:"updated_at"`
+	CreatedAt APITime      `json:"created_at"`
+	UpdatedAt APITime      `json:"updated_at"`
 }
 
 // InstanceType describes an available instance type.
